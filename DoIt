@@ -1,0 +1,418 @@
+#! /bin/bash 
+cd 
+cd /scratch/mats/doc/publications/database/
+cd /home/mats/public_solar/publications/database/
+#
+# Bibliography web page script by Mats Löfdahl
+#
+yrs="2022 2021 2020"
+yrs="$yrs 2019 2018 2017 2016 2015 2014 2013 2012 2011 2010"
+yrs="$yrs 2009 2008 2007 2006 2005 2004 2003 2002 2001 2000"
+yrs="$yrs 1999 1998 1997 1996 1995 1994 1993 1992 1991 1990"
+yrs="$yrs 1989 1988 1987 1986 1985 1984 1983 1982 1981 1980"
+files="unpublished $yrs 0.6m"
+# Make new print-bibs.tex file
+echo "----- Removing old print-bibs.tex and svst.bib"
+rm -f print-bibs.tex svst.bib
+#cat bib-strings.bib > svst.bib
+echo "----- Make new print-bibs.tex"
+(cat <<- EOF
+	\\documentclass{article}
+	\\usepackage{a4wide}
+	\\usepackage{chapterbib}
+	\\usepackage{html}
+	\\usepackage{url}
+	\\title{Bibliography of SST/SVST-Related Science}
+	\\author{The Institute for Solar Physics}
+	\\date{Printed \\today}
+	\\begin{document}
+	\\maketitle
+EOF
+) > print-bibs.tex
+echo "----- Adding lines to print-bibs.tex for each individual bib file"
+for yr in $files
+do
+  echo "------- $yr"
+  if [ -s svst-$yr-ref.bib ]; then    
+      echo "\\include{print-$yr-ref}" >> print-bibs.tex
+  fi
+  if [ -s svst-$yr-sci.bib ]; then    
+      echo "\\include{print-$yr-sci}" >> print-bibs.tex
+  fi
+  if [ -s svst-$yr.bib ]; then
+      echo "\\include{print-$yr}" >> print-bibs.tex
+  fi
+done
+echo "----- Ending print-bibs.tex"
+(cat <<- EOF
+	\\end{document}
+EOF
+) >> print-bibs.tex
+echo "----- Make new print-YYYY.tex files"
+for yr in $files
+do
+  echo "------- $yr"
+  rm -f print-$yr-ref.tex
+  if [ -s svst-$yr-ref.bib ]; then    
+      (cat <<- EOF
+	    \\def\\refname{Refereed publications from $yr}
+	    \\nocite{*}
+	    \\bibliographystyle{plain}
+	    \\bibliography{bib-strings,svst-$yr-ref}
+	EOF
+      ) > print-$yr-ref.tex
+      echo  >> svst.bib
+      cat svst-$yr-ref.bib >> svst.bib
+      echo  >> svst.bib
+  fi
+  rm -f print-$yr-sci.tex
+  if [ -s svst-$yr-sci.bib ]; then    
+      (cat <<- EOF
+	    \\def\\refname{Other scientific publications from $yr}
+	    \\nocite{*}
+	    \\bibliographystyle{plain}
+	    \\bibliography{bib-strings,svst-$yr-sci}
+	EOF
+      ) > print-$yr-sci.tex
+      echo  >> svst.bib
+      cat svst-$yr-sci.bib >> svst.bib
+      echo  >> svst.bib
+  fi
+  rm -f print-$yr.tex
+  if [ -s svst-$yr.bib ]; then
+      (cat <<- EOF
+	    \\def\\refname{Other publications from $yr}
+	    \\nocite{*}
+	    \\bibliographystyle{plain}
+	    \\bibliography{bib-strings,svst-$yr}
+	EOF
+      ) > print-$yr.tex
+      echo  >> svst.bib
+      cat svst-$yr.bib >> svst.bib
+      echo  >> svst.bib
+  fi
+done
+idl -e ".rn crossref.pro" # Make crossrefs so we can use arXiv tags as bib keys
+echo "-----  Run latex on print-bibs.tex"
+latex print-bibs
+echo "-----  Run bibtex on the print-YYYY.bbl files"
+for yr in $files
+do
+  echo "------- $yr"
+  rm -f print-$yr-ref.blg
+  if [ -s svst-$yr-ref.bib ]; then    
+      bibtex print-$yr-ref
+  fi
+  rm -f print-$yr-sci.blg
+  if [ -s svst-$yr-sci.bib ]; then    
+      bibtex print-$yr-sci
+  fi
+  rm -f print-$yr.blg
+  if [ -s svst-$yr.bib ]; then
+      bibtex print-$yr
+  fi
+done
+echo "-----  Run latex on print-bibs.tex"
+latex print-bibs
+echo "----- Make hardcopy"
+dvips -o print-bibs.ps print-bibs
+echo "----- Count references"
+rm -f svst_counts svst_counts.ref svst_counts.all
+echo "#Year N_ref N_sci N_other" > svst_counts
+echo "#Year N_ref" > svst_counts.ref
+echo "#Year N_all" > svst_counts.all
+N_papers=0
+for yr in $yrs
+do
+  echo "------- $yr"
+  if [ -s svst-$yr-ref.bib ]; then    
+      N_ref=`grep "bibitem" print-$yr-ref.bbl | wc -l | sed s/\ //g`
+      N_papers=`echo $N_papers + $N_ref | bc`
+  else
+      N_ref=0
+  fi
+  if [ -s svst-$yr-sci.bib ]; then    
+      N_sci=`grep "bibitem" print-$yr-sci.bbl | wc -l | sed s/\ //g`
+      N_papers=`echo $N_papers + $N_sci | bc`
+  else
+      N_sci=0
+  fi
+  if [ -s svst-$yr.bib ]; then
+      N_other=`grep "bibitem" print-$yr.bbl | wc -l | sed s/\ //g`
+      N_papers=`echo $N_papers + $N_other | bc`
+  else
+      N_other=0
+  fi
+  echo $yr $N_ref $N_sci $N_other >> svst_counts
+  echo $yr.15 $N_ref  >> svst_counts.ref
+  echo $yr $[ N_ref + N_sci + Nother ] >> svst_counts.all
+done
+#####ANA_DIR=/usr/local/ana
+######ANA_DIR=/home/mats/ana
+#####ANA_SLIB=$ANA_DIR/slib/
+#####ANA_HERSH=$ANA_DIR/fonts/
+#####ANA_HELP=$ANA_DIR/help/
+#####ANA_WLIB=$ANA_DIR/wlib/
+#####ANA_PIXMAPS=$ANA_DIR/pixmaps/
+#####ANA_MOVIE_DIR=/hosts/diapason/usr3/ANA/movies/
+#####ana () { $ANA_DIR/ana $1; }
+#####ana plotthem_ps.ana
+######$ANA_DIR/anat plotthem_ps.ana
+#####rm -f svst_counts.jpg svst_counts.jpg.? svst_counts-?.jpg
+#####convert -scale 75% -rotate 90 svst_counts.ps svst_counts.jpg
+#####mogrify -colorize 0/0/40 svst_counts-1.jpg
+#####mv svst_counts-1.jpg svst_counts.jpg
+#gnuplot svst_counts.gnuplot
+idl svst_counts.pro 
+echo "----- Now make svst-publications.tex file"
+rm -f svst-publications.tex
+(cat <<- EOF
+	\\documentclass{article}
+	\\usepackage{html}
+%	\\bodytext{bgcolor="#fafacf" text="#000000" link="#CC0000" alink="#FF3300" vlink="#330099"}
+\\usepackage{color}
+\\pagecolor{white}
+	\\title{Bibliography of SVST and SST Related Science} 
+	\\author{The Institute for Solar Physics}
+	\\date{Printed \\today}
+	\\def\\tmp#1{\\noindent }
+	\\def\\newblock{}
+	\\begin{document}
+	\\maketitle
+
+ 	Here we list publications that are based on SVST/SST data,
+	describe instrument development for the SVST/SST, involve data
+	from the Swedish Stellar 0.6 m Telescope, or are (co-)authored
+	by members of the Institute for Solar Physics staff.
+
+	The number of publications for each year is given
+	below in parentheses as a sum of the number of articles 
+	published in refereed journals, the number of other scientific
+	publications (e.g. proceedings papers and dissertations), and
+	the number of other publications (e.g. abstracts and popular science).
+	The total number of listed publications is $N_papers (results from 
+	using the 0.6-m stellar telescope not counted).
+	
+	We want to keep this list as accurate and up to date as possible.
+	If this is the first time you see this list and you know you have
+	published results using data from the SST or SVST, please make sure
+	your publications are listed.  Please also let us know of any new
+	work.   Corrections and additions can be sent by email to
+	\\htmladdnormallink{mats@astro.su.se}{mailto:mats@astro.su.se}.
+		 
+	Also please note that publications presenting results using data from
+	the SST should have the following two sentences in the Acknowledgements 
+	section:
+ 	\\begin{quote}
+	\\emph{The Swedish 1-m Solar Telescope is operated on the island of
+	La~Palma by the Institute for Solar Physics of Stockholm University in the Spanish 
+	Observatorio~del Roque~de los~Muchachos of the Instituto de
+	Astrofísica de Canarias. The Institute for Solar Physics is supported by a 
+        grant for research infrastructures of national importance from the Swedish 
+        Research Council (registration number 2017-00625).}
+	\\end{quote}
+	Substitute "Vacuum" for "1-m" if the data was collected with the older SVST. 
+EOF
+) > svst-publications.tex
+echo "----- More counting"
+if [ -s svst-unpublished-ref.bib ]; then    
+    N_ref=`grep "bibitem" print-unpublished-ref.bbl | wc -l | sed s/\ //g`
+else
+      N_ref=0
+fi
+if [ -s svst-unpublished-sci.bib ]; then    
+    N_sci=`grep "bibitem" print-unpublished-sci.bbl | wc -l | sed s/\ //g`
+else
+    N_sci=0
+fi
+if [ -s svst-unpublished.bib ]; then
+    N_other=`grep "bibitem" print-unpublished.bbl | wc -l | sed s/\ //g`
+else
+    N_other=0
+fi
+N_papers=`echo $N_ref + $N_sci + $N_other | bc`
+echo "----- "
+if [ $N_papers -gt 0 ]; then
+    echo "\\section{Not yet published ($N_ref+$N_sci+$N_other=$N_papers)}" >> svst-publications.tex
+    echo "\\subsection{Articles in refereed journals ($N_ref)}" >> svst-publications.tex
+    if [ -s svst-unpublished-ref.bib ]; then
+	tmp=`tail -n +2 print-unpublished-ref.bbl | wc -l | sed s/\ //g`
+	head -n $tmp print-unpublished-ref.bbl | tail -n +2 | sed s/\\\\newblock//g | sed "s/\\\\bibitem/\\\\tmp/g"  >> svst-publications.tex
+    fi
+    echo "\\subsection{Other scientific publications ($N_sci)}" >> svst-publications.tex
+    if [ -s svst-unpublished-sci.bib ]; then
+	tmp=`tail -n +2 print-unpublished-sci.bbl | wc -l | sed s/\ //g`
+	head -n $tmp print-unpublished-sci.bbl | tail -n +2 | sed s/\\\\newblock//g | sed "s/\\\\bibitem/\\\\tmp/g"  >> svst-publications.tex
+    fi
+    echo "\\subsection{Other publications ($N_other)}" >> svst-publications.tex
+    if [ -s svst-unpublished.bib ]; then
+	tmp=`tail -n +2 print-unpublished.bbl | wc -l | sed s/\ //g`
+	head -n $tmp print-unpublished.bbl | tail -n +2 | sed s/\\\\newblock//g | sed "s/\\\\bibitem/\\\\tmp/g"  >> svst-publications.tex
+    fi
+    #if [ -s svst-unpublished.bib ]; then
+    #    tmp=`tail +2 print-unpublished.bbl | wc -l | sed s/\ //g`
+    #    head -$tmp print-unpublished.bbl | tail +2 | sed s/\\\\newblock//g | sed "s/\\\\bibitem/\\\\tmp/g"  >> svst-publications.tex
+    #fi
+fi
+echo "----- Add lines to svst-publications.tex"
+for yr in $yrs
+do
+  echo "------- $yr"
+  if [ -s svst-$yr-ref.bib ]; then    
+      N_ref=`grep "bibitem" print-$yr-ref.bbl | wc -l | sed s/\ //g`
+  else
+      N_ref=0
+  fi
+  if [ -s svst-$yr-sci.bib ]; then    
+      N_sci=`grep "bibitem" print-$yr-sci.bbl | wc -l | sed s/\ //g`
+  else
+      N_sci=0
+  fi
+  if [ -s svst-$yr.bib ]; then
+      N_other=`grep "bibitem" print-$yr.bbl | wc -l | sed s/\ //g`
+  else
+      N_other=0
+  fi
+  N_papers=`echo $N_ref + $N_sci + $N_other | bc`
+  if [ $N_papers -gt 0 ]; then
+      echo "\\section{Publications from $yr ($N_ref+$N_sci+$N_other=$N_papers)}" >> svst-publications.tex
+      echo "\\subsection{Articles in refereed journals ($N_ref)}" >> svst-publications.tex
+      if [ -s svst-$yr-ref.bib ]; then
+	  tmp=`tail -n +2 print-$yr-ref.bbl | wc -l | sed s/\ //g`
+	  head -n $tmp print-$yr-ref.bbl | tail -n +2 | sed s/\\\\newblock//g | sed "s/\\\\bibitem/\\\\tmp/g"  >> svst-publications.tex
+      fi
+      echo "\\subsection{Other scientific publications ($N_sci)}" >> svst-publications.tex
+      if [ -s svst-$yr-sci.bib ]; then
+	  tmp=`tail -n +2 print-$yr-sci.bbl | wc -l | sed s/\ //g`
+	  head -n $tmp print-$yr-sci.bbl | tail -n +2 | sed s/\\\\newblock//g | sed "s/\\\\bibitem/\\\\tmp/g"  >> svst-publications.tex
+      fi
+      echo "\\subsection{Other publications ($N_other)}" >> svst-publications.tex
+      if [ -s svst-$yr.bib ]; then
+	  tmp=`tail -n +2 print-$yr.bbl | wc -l | sed s/\ //g`
+	  head -n $tmp print-$yr.bbl | tail -n +2 | sed s/\\\\newblock//g | sed "s/\\\\bibitem/\\\\tmp/g"  >> svst-publications.tex
+      fi
+  fi
+done
+echo "----- Even more counting"
+if [ -s svst-0.6m-ref.bib ]; then    
+    N_ref=`grep "bibitem" print-0.6m-ref.bbl | wc -l | sed s/\ //g`
+else
+    N_ref=0
+fi
+if [ -s svst-0.6m-sci.bib ]; then    
+    N_sci=`grep "bibitem" print-0.6m-sci.bbl | wc -l | sed s/\ //g`
+else
+    N_sci=0
+fi
+if [ -s svst-0.6m.bib ]; then
+    N_other=`grep "bibitem" print-0.6m.bbl | wc -l | sed s/\ //g`
+else
+    N_other=0
+fi
+N_papers=`echo $N_ref + $ N_sci + $N_other | bc`
+echo "----- Add more lines"
+if [ $N_papers -gt 0 ]; then
+    echo "\\section{Publications using the 0.6 m stellar telescope ($N_ref+$N_other=$N_papers)}" >> svst-publications.tex
+    echo "\\subsection{Articles in refereed journals ($N_ref)}" >> svst-publications.tex
+    if [ -s svst-0.6m-ref.bib ]; then
+        tmp=`tail -n +2 print-0.6m-ref.bbl | wc -l | sed s/\ //g`
+        head -n $tmp print-0.6m-ref.bbl | tail -n +2 | sed s/\\\\newblock//g | sed "s/\\\\bibitem/\\\\tmp/g"  >> svst-publications.tex
+    fi
+    echo "\\subsection{Other scientific publications ($N_sci)}" >> svst-publications.tex
+    if [ -s svst-0.6m-sci.bib ]; then
+        tmp=`tail -n +2 print-0.6m-sci.bbl | wc -l | sed s/\ //g`
+        head -n $tmp print-0.6m-sci.bbl | tail -n +2 | sed s/\\\\newblock//g | sed "s/\\\\bibitem/\\\\tmp/g"  >> svst-publications.tex
+    fi
+    echo "\\subsection{Other publications ($N_other)}" >> svst-publications.tex
+    if [ -s svst-0.6m.bib ]; then
+        tmp=`tail -n +2 print-0.6m.bbl | wc -l | sed s/\ //g`
+        head -n $tmp print-0.6m.bbl | tail -n +2 | sed s/\\\\newblock//g | sed "s/\\\\bibitem/\\\\tmp/g"  >> svst-publications.tex
+    fi
+fi
+echo "----- Behind the scenes section"
+(cat <<- EOF
+	\\section{Behind the scenes ...}
+
+	\\subsection{Shell script}
+
+	A \\htmladdnormallink{shell script}{DoIt} makes html files
+	from the bibliography database files.  It outputs latex files
+	that \verb+\\nocite{*}+ all items in whatever bibtex files
+	exists at run-time.  It runs latex and bibtex and then
+	re-arranges the resulting files into yet another latex file
+	that works with latex2html.  In the process we also get a
+	PostScript file to make hard copies.
+
+	\\subsection{Bibtex database files}
+
+	The \\htmladdnormallink{bibtex database files}{svst.bib} use some
+	\\htmladdnormallink{string definitions}{bib-strings.bib}.
+%	\\begin{itemize}
+EOF
+) >> svst-publications.tex
+#echo "----- Yearly sections"
+#for yr in $files
+#do
+#  echo "------- $yr"
+#  item_written=0
+#  if [ -s svst-"$yr"-ref.bib ]; then    
+#      echo '\\item['$yr']' >> svst-publications.tex
+#      item_written=1
+#      echo '-- \\htmladdnormallink{[Refereed articles]}{svst-'$yr'-ref.bib} ' >> svst-publications.tex
+#  fi
+#  if [ -s svst-"$yr"-sci.bib ]; then    
+#      if [ $item_written -eq 0 ]; then
+#	  echo '\\item['$yr']' >> svst-publications.tex
+#      fi
+#      item_written=1
+#      echo '-- \\htmladdnormallink{[Other scientific publications]}{svst-'$yr'-sci.bib} ' >> svst-publications.tex
+#  fi
+#  if [ -s svst-"$yr".bib ]; then    
+#      if [ $item_written -eq 0 ]; then
+#	  echo '\\item['$yr']' >> svst-publications.tex
+#      fi
+#      echo '-- \\htmladdnormallink{[Other publications]}{svst-'$yr'.bib}' >> svst-publications.tex
+#  fi
+#done
+echo "----- Ending"
+(cat <<- EOF
+%	\\end{itemize}
+
+	\\subsection{Graph}
+	
+	\\htmladdimg{svst_counts.png}
+
+	\\subsection{ADS query form}
+
+        We have an \\htmladdnormallink{ADS query
+        form}{custom_queryform.html} that can be used to search for
+        more recent papers that refer to the SST/SVST.
+
+	\\end{document}
+EOF
+) >> svst-publications.tex
+echo "----- Convert to HTML"
+latex2html -split +1 -link 1 -no_subdir -font_size 12pt -local_icons -bottom_navigation -up_url "http://www.isf.astro.su.se/" -up_title "Institute for Solar Physics" svst-publications
+ln -s svst-publications.html index.html
+echo "----- List problems from bibtex if any"
+for yr in $files
+do
+    if [ -s svst-$yr-ref.bib ]; then
+	cat print-$yr-ref.blg
+    fi
+    if [ -s svst-$yr.bib ]; then
+	cat print-$yr.blg
+    fi
+done
+echo "----- Copy to katie"
+#scp {svst,bib-strings,bib-strings_aa}.bib sally.astro.su.se:/usr/share/texmf/bibtex/bib/local/
+cp {svst,bib-strings,bib-strings_aa,crossref}.bib /home/mats/texmf/bibtex/bib/local/
+#echo "----- Copy to web"
+#ssh re kinit
+#rsync -ave ssh * enlil:public_solar/publications/database/
+#
+#
+# Convert bbl files to xml
+#
+idl -e ".rn bbl2xml.pro"
+

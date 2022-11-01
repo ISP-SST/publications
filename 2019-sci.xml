@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Other science publications 2019</title>
+    <link>https://www.isf.astro.se/publications/database/</link>
+    <description>Other science publications 2019</description>
+    <item>
+      <title>Johan&nbsp;Pires Bj&#x0F8;rgen. The synthetic chromosphere: Results and techniques with a numerical approach. PhD thesis, Stockholm University, 2019.</title>
+      <link>http://urn.kb.se/resolve?urn=urn:nbn:se:su:diva-162512</link>
+      <description></description>
+    </item>
+    <item>
+      <title>Tine Libbrecht. The diagnostic potential of the He&nbsp;I&nbsp;D&#x2083; spectral line in the solar atmosphere. PhD thesis, Stockholm University, 2019.</title>
+      <link>http://urn.kb.se/resolve?urn=urn:nbn:se:su:diva-166996</link>
+      <description></description>
+    </item>
+    <item>
+      <title>Ryan Murray. Horizontal Magnetic Fields in the Sun's Atmosphere. Msc thesis, Queen's University Belfast, 2019.</title>
+      <link></link>
+      <description></description>
+    </item>
+    <item>
+      <title>A.&nbsp;G.&nbsp;M. Pietrow. CRISpy: A Python module for working with CRISP data from the Swedish 1-m Solar Telescope. In Zenodo Software Releas, volume&nbsp;32, page 29961, Jun 2019.</title>
+      <link>https://zenodo.org/record/3368313</link>
+      <description></description>
+    </item>
+    <item>
+      <title>A.&nbsp;G.&nbsp;M. Pietrow, L.&nbsp;Burtscher, and B.&nbsp;Brandl. Inverse Chop Addition: Thermal IR Background Subtraction without Nodding. Research Notes of the AAS, 3(2):42, 2019.</title>
+      <link>http://arxiv.org/abs/1903.05680</link>
+      <description></description>
+    </item>
+    <item>
+      <title>R.&nbsp;Schlichenmaier, L.&nbsp;R. Bellot Rubio, M.&nbsp;Collados, R.&nbsp;Erdelyi, A.&nbsp;Feller, L.&nbsp;Fletcher, J.&nbsp;Jurcak, E.&nbsp;Khomenko, J.&nbsp;Leenaarts, S.&nbsp;Matthews, L.&nbsp;Belluzzi, M.&nbsp;Carlsson, K.&nbsp;Dalmasse, S.&nbsp;Danilovic, P.&nbsp;Go&#x308;mo&#x308;ry, C.&nbsp;Kuckein, R.&nbsp;Manso Sainz, M.&nbsp;Martinez Gonzalez, M.&nbsp;Mathioudakis, A.&nbsp;Ortiz, T.&nbsp;L. Riethmu&#x308;ller, L.&nbsp;Rouppe van der Voort, P.&nbsp;J.&nbsp;A. Simoes, J.&nbsp;Trujillo Bueno, D.&nbsp;Utz, and F.&nbsp;Zuccarello. Science Requirement Document (SRD) for the European Solar Telescope (EST) (2nd edition, December 2019). arXiv e-prints, 2019.</title>
+      <link>http://arxiv.org/abs/1912.08650</link>
+      <description></description>
+    </item>
+  </channel>
+</rss>

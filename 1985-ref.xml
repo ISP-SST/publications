@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Refereed ISP publications 1985</title>
+    <link>https://www.isf.astro.se/publications/database/</link>
+    <description>Refereed ISP publications 1985</description>
+    <item>
+      <title>B.&nbsp;W. Lites, S.&nbsp;L. Keil, G.&nbsp;B. Scharmer, and A.&nbsp;A. Wyller. Steady flows in active regions observed with the He&nbsp;I 10830 &#x0C5; line. Solar Physics, 97:35&ndash;49, 1985.</title>
+      <link>http://adsabs.harvard.edu/abs/1985SoPh...97...35L</link>
+      <description></description>
+    </item>
+    <item>
+      <title>G.&nbsp;B. Scharmer and M.&nbsp;Carlsson. A new approach to multi-level non-LTE radiative transfer problems. Journal of Computational Physics, 59:56&ndash;80, May 1985.</title>
+      <link>http://adsabs.harvard.edu/abs/1985JCoPh..59...56S</link>
+      <description></description>
+    </item>
+    <item>
+      <title>Go&#x308;ran&nbsp;B. Scharmer, David&nbsp;S. Brown, Lennart Pettersson, and John Rehn. Concepts for the Swedish 50-cm vacuum solar telescope. Applied Optics, 24(16):2558&ndash;2564, 1985.</title>
+      <link></link>
+      <description></description>
+    </item>
+  </channel>
+</rss>
